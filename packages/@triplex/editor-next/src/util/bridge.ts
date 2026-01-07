@@ -118,6 +118,10 @@ export interface ToVSCodeEvent extends ClientSendEventData {
   terminal: {
     command: string;
   };
+  "component-insert": {
+    scenePath: string;
+    componentPath: string;
+  };
 }
 
 /**

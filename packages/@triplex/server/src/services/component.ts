@@ -630,6 +630,117 @@ export function move(
   }
 }
 
+/** Adds an existing component to the end of a scene (auto-detects exports) */
+export function addComponentToEnd(
+  sceneFile: SourceFile,
+  componentPath: string,
+) {
+  let componentFile = sceneFile.getProject().getSourceFile(componentPath);
+
+  if (!componentFile) {
+    componentFile = sceneFile.getProject().addSourceFileAtPath(componentPath);
+  }
+
+  if (!componentFile) {
+    throw new Error(`Component file not found: ${componentPath}`);
+  }
+
+  const componentExportName = Array.from(
+    componentFile.getExportedDeclarations().keys(),
+  )[0];
+
+  if (!componentExportName) {
+    throw new Error(`No exports found in ${componentPath}`);
+  }
+
+  ensureImport(sceneFile, componentPath, componentExportName);
+
+  const sceneExportName = Array.from(
+    sceneFile.getExportedDeclarations().keys(),
+  )[0];
+
+  if (!sceneExportName) {
+    throw new Error(`No exports found in scene file`);
+  }
+
+  const jsxElement = getExportJsxElement(sceneFile, sceneExportName);
+
+  const newComponentJsx = `<${componentExportName} />`;
+
+  insertAtEnd(sceneFile, jsxElement, newComponentJsx);
+}
+
+/** Ensures an import exists for the component */
+function ensureImport(
+  sourceFile: SourceFile,
+  modulePath: string,
+  exportName: string,
+) {
+  const existingImport = sourceFile.getImportDeclaration(
+    (imp) => imp.getModuleSpecifierValue() === modulePath,
+  );
+
+  if (!existingImport) {
+    sourceFile.addImportDeclaration({
+      moduleSpecifier: modulePath,
+      namedImports: [exportName],
+    });
+  } else {
+    const namedImports = existingImport.getNamedImports();
+    const hasImport = namedImports.some((ni) => ni.getName() === exportName);
+
+    if (!hasImport) {
+      existingImport.addNamedImport(exportName);
+    }
+  }
+}
+
+/** Gets the JSX element for an export */
+function getExportJsxElement(sourceFile: SourceFile, exportName: string) {
+  const exportDeclaration = sourceFile
+    .getExportedDeclarations()
+    .get(exportName)?.[0];
+  if (!exportDeclaration) {
+    throw new Error(`Export "${exportName}" not found`);
+  }
+  const returnStatements = exportDeclaration.getDescendantsOfKind(
+    SyntaxKind.ReturnStatement,
+  );
+  for (const returnStmt of returnStatements) {
+    let expression = returnStmt.getExpression();
+
+    while (expression && Node.isParenthesizedExpression(expression)) {
+      expression = expression.getExpression();
+    }
+
+    if (
+      expression &&
+      (Node.isJsxElement(expression) ||
+        Node.isJsxFragment(expression) ||
+        Node.isJsxSelfClosingElement(expression))
+    ) {
+      return expression;
+    }
+  }
+  throw new Error(`No JSX return found in "${exportName}"`);
+}
+
+/** Inserts JSX at the end of an element */
+function insertAtEnd(sourceFile: SourceFile, jsxElement: Node, newJsx: string) {
+  if (Node.isJsxElement(jsxElement)) {
+    const closingElement = jsxElement.getClosingElement();
+    sourceFile.insertText(closingElement.getStart(), `\n${newJsx}\n`);
+  } else if (Node.isJsxFragment(jsxElement)) {
+    const closingFragment = jsxElement.getClosingFragment();
+    sourceFile.insertText(closingFragment.getStart(), `\n${newJsx}\n`);
+  } else {
+    const elementText = jsxElement.getText();
+    jsxElement.replaceWithText(`<>\n${elementText}\n${newJsx}\n</>`);
+  }
+
+  sourceFile.formatText();
+}
+
 export function group(
   sourceFile: SourceFile,
   {

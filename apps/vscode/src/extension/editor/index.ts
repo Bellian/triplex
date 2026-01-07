@@ -187,6 +187,9 @@ export class TriplexEditorProvider
           sendVSCE(panel.webview, "vscode:request-blur-element", undefined);
           await document.deleteElement(element);
         }),
+        on(panel.webview, "component-insert", async (data) => {
+          await document.insertComponent(data);
+        }),
         on(panel.webview, "notification", async (data) => {
           switch (data.type) {
             case "info":

@@ -5,6 +5,7 @@
  * see this files license find the nearest LICENSE file up the source tree.
  */
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { Application, isHttpError, Router } from "@oakserver/oak";
 import { fg, initFeatureGates } from "@triplex/lib/fg";
 import { createForkLogger } from "@triplex/lib/log";
@@ -32,6 +33,7 @@ import { propGroupsDef } from "./ast/prop-groupings";
 import { createAI } from "./services/ai";
 import {
   add,
+  addComponentToEnd,
   commentComponent,
   create,
   deleteElement,
@@ -339,6 +341,21 @@ export async function createServer({
     });
 
     context.response.body = { ...ids };
+  });
+
+  router.post("/scene/:path/add-component", async (context) => {
+    const { path: scenePath } = context.params;
+
+    const body = await context.request.body().value;
+
+    const componentPath = fileURLToPath(body.componentPath);
+
+    const sceneFile = project.getSourceFile(scenePath);
+
+    const [ids] = await sceneFile.edit((source) => {
+      addComponentToEnd(source, componentPath);
+    });
+    context.response.body = { ...ids, success: true };
   });
 
   router.post("/scene/new", (context) => {

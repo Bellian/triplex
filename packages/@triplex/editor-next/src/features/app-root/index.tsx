@@ -6,16 +6,65 @@
  */
 import { fg } from "@triplex/lib/fg";
 import { useScreenView } from "@triplex/ux";
+import { DragEvent, useRef, useState } from "react";
 import { preloadSubscription } from "../../hooks/ws";
+import { sendVSCE } from "../../util/bridge";
 import { AIChat } from "../ai-chat";
 import { FloatingControls } from "../floating-controls";
 import { Panels } from "../panels";
+import { useSceneContext } from "./context";
 import { Dialogs } from "./dialogs";
 import { EmptyState } from "./empty-state";
 import { Events } from "./events";
 
 export function AppRoot() {
   useScreenView("app", "Screen");
+
+  const context = useSceneContext();
+  const [isDragging, setIsDragging] = useState(false);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Only set to false if leaving the drop zone itself
+    if (
+      e.currentTarget === dropZoneRef.current &&
+      !dropZoneRef.current.contains(e.relatedTarget as Node)
+    ) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const items = e.dataTransfer.items;
+    const fileUris: string[] = [];
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === "string" && item.type === "text/uri-list") {
+        item.getAsString((uri) => {
+          fileUris.push(uri);
+          sendVSCE("component-insert", {
+            componentPath: uri,
+            scenePath: context.path,
+          });
+        });
+      }
+    }
+  };
 
   return (
     <div className="fixed inset-0 flex select-none">
@@ -25,13 +74,53 @@ export function AppRoot() {
       <div className="relative h-full w-full">
         <FloatingControls />
         <EmptyState />
-        <iframe
-          allow="cross-origin-isolated"
-          className="h-full w-full"
-          data-testid="scene"
-          id="scene"
-          src={`http://localhost:${window.triplex.env.ports.client}/scene`}
-        />
+        <div
+          ref={dropZoneRef}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          style={{
+            position: "relative",
+            height: "100%",
+            width: "100%",
+            padding: "16px",
+          }}
+        >
+          {isDragging && (
+            <div
+              style={{
+                border: "2px dashed #ccc",
+                borderRadius: "8px",
+                padding: "40px",
+                textAlign: "center",
+                backgroundColor: "#f5f5f5",
+                transition: "all 0.3s ease",
+                minHeight: "200px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                position: "absolute",
+                top: "0",
+                left: "0",
+                width: "100%",
+                height: "100%",
+                zIndex: "99",
+                pointerEvents: "all",
+              }}
+            >
+              <p>Drop Component here</p>
+            </div>
+          )}
+          <iframe
+            allow="cross-origin-isolated"
+            className="h-full w-full"
+            data-testid="scene"
+            id="scene"
+            src={`http://localhost:${window.triplex.env.ports.client}/scene`}
+          />
+        </div>
       </div>
       {fg("ai_chat") && <AIChat />}
     </div>

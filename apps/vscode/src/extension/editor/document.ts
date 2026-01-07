@@ -208,6 +208,27 @@ export class TriplexDocument implements vscode.CustomDocument {
     });
   }
 
+  async insertComponent(data: { scenePath: string; componentPath: string }) {
+    return this.undoableAction("Insert component", async () => {
+      const result = await fetch(
+        `http://localhost:${
+          this._context.ports.server
+        }/scene/${encodeURIComponent(data.scenePath)}/add-component`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            componentPath: data.componentPath,
+          }),
+        },
+      );
+      const response: Mutation = await result.json();
+      return { ...response, path: data.scenePath };
+    });
+  }
+
   async moveElement(data: {
     action: "move-before" | "move-after" | "make-child" | "reparent";
     destination: { astPath: string; column: number; line: number };
