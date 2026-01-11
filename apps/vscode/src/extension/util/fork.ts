@@ -92,7 +92,11 @@ export function fork<TData extends Record<string, unknown>>(
 
     fork.stderr?.on("data", (data) => {
       const err = data.toString();
-      if (err.includes("inspector") || err.includes("Statsig")) {
+      if (
+        err.includes("inspector") ||
+        (err.includes("Statsig") && err.includes("fetch failed")) // excludes Statsig fetch errors
+          (err.includes("Statsig") && err.includes("Timeout")) // excludes Statsig timeout error
+      ) {
         // Ignore inspector errors.
         return;
       }
