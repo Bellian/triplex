@@ -92,7 +92,7 @@ export function fork<TData extends Record<string, unknown>>(
 
     fork.stderr?.on("data", (data) => {
       const err = data.toString();
-      if (err.includes("inspector")) {
+      if (err.includes("inspector") || err.includes("Statsig")) {
         // Ignore inspector errors.
         return;
       }

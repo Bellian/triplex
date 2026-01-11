@@ -12,7 +12,7 @@ import { type FGEnvironment } from "./types";
 
 const overrideAdapter = new LocalOverrideAdapter();
 
-let instance: StatsigClient;
+let instance: StatsigClient | undefined;
 
 export async function initFeatureGates({
   environment,
@@ -40,19 +40,22 @@ export async function initFeatureGates({
     return;
   }
 
-  const client = new StatsigClient(
-    "client-RoO8UZOrk5aM4zXe3AP7vQjy66PWeumvN2PfQ2P6xt7",
-    { userID: userId },
-    {
-      environment: { tier: environment },
-      networkConfig: { preventAllNetworkTraffic: environment === "local" },
-      overrideAdapter,
-    },
-  );
+  try {
+    const client = new StatsigClient(
+      "client-RoO8UZOrk5aM4zXe3AP7vQjy66PWeumvN2PfQ2P6xt7",
+      { userID: userId },
+      {
+        environment: { tier: environment },
+        networkConfig: { preventAllNetworkTraffic: environment === "local", networkTimeoutMs: 2500 },
+        overrideAdapter,
+      },
+    );
 
-  await client.initializeAsync();
-
-  instance = client;
+    await client.initializeAsync();
+  } catch (error) {
+    // Ignore initialization errors to prevent blocking app startup
+    console.error("[Statsig] Failed to initialize Statsig:", error);
+  }
 
   if (typeof document !== "undefined") {
     document.documentElement.setAttribute("data-fg-user", userId);
@@ -69,7 +72,7 @@ export async function initFeatureGates({
 }
 
 export function fg(key: string): boolean {
-  return instance.checkGate(key);
+  return instance?.checkGate(key) ?? false; // Default to false if not initialized
 }
 
 export function overrideFg(key: string, value: boolean) {
