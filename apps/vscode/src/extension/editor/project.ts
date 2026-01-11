@@ -13,6 +13,8 @@ import { type Args } from "../../project";
 import { fork } from "../util/fork";
 import { getPort } from "../util/port";
 
+const PROJECT_RETRY_TIME = 1000;
+
 export interface TriplexProject {
   /** Number of active sessions of this project */
   active: number;
@@ -65,32 +67,39 @@ export async function resolveProject(
       userId: vscode.env.machineId,
     };
 
-    const p = await fork<Args>(
-      process.env.NODE_ENV === "production"
-        ? join(context.extensionPath, "dist/project.js")
-        : join(context.extensionPath, "src/project/index.ts"),
-      {
-        cwd: context.extensionPath,
-        data: args,
-      },
-    );
+    try {
+      const p = await fork<Args>(
+        process.env.NODE_ENV === "production"
+          ? join(context.extensionPath, "dist/project.js")
+          : join(context.extensionPath, "src/project/index.ts"),
+        {
+          cwd: context.extensionPath,
+          data: args,
+        },
+      );
 
-    const project: TriplexProject = {
-      active: 1,
-      args,
-      dispose: () => {
-        project.active -= 1;
+      const project: TriplexProject = {
+        active: 1,
+        args,
+        dispose: () => {
+          project.active -= 1;
 
-        if (project.active === 0) {
-          projectCache.delete(cwd);
-          p.kill();
-        }
-      },
-      on: p.on,
-      ports,
-    };
+          if (project.active === 0) {
+            projectCache.delete(cwd);
+            p.kill();
+          }
+        },
+        on: p.on,
+        ports,
+      };
 
-    resolve(project);
+      resolve(project);
+    } catch (err) {
+      // free up the cache on failure to initialize after standdown time.
+      setTimeout(() => {
+        projectCache.delete(cwd);
+      }, PROJECT_RETRY_TIME);
+    }
   });
 
   projectCache.set(cwd, projectResolver);
