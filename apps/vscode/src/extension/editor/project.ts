@@ -68,7 +68,7 @@ export async function resolveProject(
     };
 
     try {
-      const p = await fork<Args>(
+      const projectProcess = await fork<Args>(
         process.env.NODE_ENV === "production"
           ? join(context.extensionPath, "dist/project.js")
           : join(context.extensionPath, "src/project/index.ts"),
@@ -86,15 +86,16 @@ export async function resolveProject(
 
           if (project.active === 0) {
             projectCache.delete(cwd);
-            p.kill();
+            projectProcess.kill();
           }
         },
-        on: p.on,
+        on: projectProcess.on,
         ports,
       };
 
       resolve(project);
-    } catch (err) {
+      // eslint-disable-next-line unicorn/prefer-optional-catch-binding, @typescript-eslint/no-unused-vars
+    } catch (error) {
       // free up the cache on failure to initialize after standdown time.
       setTimeout(() => {
         projectCache.delete(cwd);

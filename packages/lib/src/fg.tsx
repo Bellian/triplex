@@ -46,15 +46,16 @@ export async function initFeatureGates({
       { userID: userId },
       {
         environment: { tier: environment },
-        networkConfig: { preventAllNetworkTraffic: environment === "local", networkTimeoutMs: 2500 },
+        networkConfig: { networkTimeoutMs: 2500, preventAllNetworkTraffic: environment === "local" },
         overrideAdapter,
       },
     );
 
     await client.initializeAsync();
   } catch (error) {
-    // Ignore initialization errors to prevent blocking app startup
-    console.error("[Statsig] Failed to initialize Statsig:", error);
+    // Ignore initialization errors to prevent blocking app startup but report to console for now
+    // eslint-disable-next-line no-console
+    console.log("[Statsig] Failed to initialize Statsig:", error);
   }
 
   if (typeof document !== "undefined") {
