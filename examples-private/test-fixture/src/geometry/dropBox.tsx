@@ -35,7 +35,7 @@ export const DropBox = ({
       <mesh
         {...ok}
         name="hello-world"
-        onClick={() => {}}
+        onClick={() => { }}
         onPointerOut={() => setHover(false)}
         onPointerOver={() => setHover(true)}
         position={position}
@@ -43,7 +43,7 @@ export const DropBox = ({
         userData={{ hello: true }}
         visible={true}
       >
-        <boxGeometry args={[size, size, size]} />
+        <boxGeometry args={[+size, +size, +size]} />
         <meshStandardMaterial color={hover ? "purple" : color} key={color} />
         <meshBasicMaterial color="green" />
         {children}

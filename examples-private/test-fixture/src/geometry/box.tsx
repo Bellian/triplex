@@ -43,7 +43,7 @@ function Box({
         userData={{ hello: true }}
         visible={true}
       >
-        <boxGeometry args={[size, size, size]} />
+        <boxGeometry args={[+size, +size, +size]} />
         <meshStandardMaterial color={hover ? "purple" : color} key={color} />
         {children}
       </mesh>
