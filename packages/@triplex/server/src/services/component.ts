@@ -248,11 +248,11 @@ export function add(
       const { column, line } = target
         ? addToJsxElement(sourceFile, target, component.name, component.props)
         : insertJsxElement(
-            sourceFile,
-            declaration,
-            component.name,
-            component.props,
-          );
+          sourceFile,
+          declaration,
+          component.name,
+          component.props,
+        );
 
       return {
         column,
@@ -343,9 +343,8 @@ export function add(
             ? `${importName}${aliasImportName ? ` as ${aliasImportName}` : ""}`
             : "";
 
-        const importDeclaration = `import ${defaultImport}${
-          namedImports ? `{ ${namedImports} } ` : " "
-        }from "${moduleSpecifier}";`;
+        const importDeclaration = `import ${defaultImport}${namedImports ? `{ ${namedImports} } ` : " "
+          }from "${moduleSpecifier}";`;
 
         sourceFile.insertText(0, importDeclaration);
       }
@@ -360,17 +359,17 @@ export function add(
       // For the freshly added JSX element.
       const { column, line } = target
         ? addToJsxElement(
-            sourceFile,
-            target,
-            aliasImportName || importName,
-            component.props,
-          )
+          sourceFile,
+          target,
+          aliasImportName || importName,
+          component.props,
+        )
         : insertJsxElement(
-            sourceFile,
-            declaration,
-            aliasImportName || importName,
-            component.props,
-          );
+          sourceFile,
+          declaration,
+          aliasImportName || importName,
+          component.props,
+        );
 
       return {
         column,

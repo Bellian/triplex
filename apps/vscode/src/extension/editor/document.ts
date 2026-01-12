@@ -33,14 +33,14 @@ export class TriplexDocument implements vscode.CustomDocument {
     return this._uri;
   }
 
-  constructor(private readonly _uri: vscode.Uri) {}
+  constructor(private readonly _uri: vscode.Uri) { }
 
   async backup(
     _context: vscode.CustomDocumentBackupContext,
     _cancellation: vscode.CancellationToken,
   ): Promise<vscode.CustomDocumentBackup> {
     return {
-      delete() {},
+      delete() { },
       id: "",
     };
   }
@@ -57,8 +57,7 @@ export class TriplexDocument implements vscode.CustomDocument {
 
     for (const path in this._modifiedPaths) {
       await fetch(
-        `http://localhost:${
-          this._context.ports.server
+        `http://localhost:${this._context.ports.server
         }/scene/${encodeURIComponent(path)}/save`,
         {
           method: "POST",
@@ -72,8 +71,7 @@ export class TriplexDocument implements vscode.CustomDocument {
     _cancellation: vscode.CancellationToken,
   ) {
     await fetch(
-      `http://localhost:${
-        this._context.ports.server
+      `http://localhost:${this._context.ports.server
       }/scene/${encodeURIComponent(
         this.uri.fsPath,
       )}/save-as?newPath=${encodeURIComponent(destination.fsPath)}`,
@@ -86,8 +84,7 @@ export class TriplexDocument implements vscode.CustomDocument {
   async revert(_cancellation: vscode.CancellationToken) {
     for (const path in this._modifiedPaths) {
       await fetch(
-        `http://localhost:${
-          this._context.ports.server
+        `http://localhost:${this._context.ports.server
         }/scene/${encodeURIComponent(path)}/reset`,
       );
     }
@@ -103,8 +100,7 @@ export class TriplexDocument implements vscode.CustomDocument {
   }) {
     return this.undoableAction("Upsert prop", async () => {
       const result = await fetch(
-        `http://localhost:${this._context.ports.server}/scene/object/${
-          data.line
+        `http://localhost:${this._context.ports.server}/scene/object/${data.line
         }/${data.column}/prop?value=${encodeURIComponent(
           toJSONString(data.propValue),
         )}&path=${encodeURIComponent(data.path)}&name=${encodeURIComponent(
@@ -134,8 +130,7 @@ export class TriplexDocument implements vscode.CustomDocument {
 
       const result = await this.undoableAction("Group elements", async () => {
         const result = await fetch(
-          `http://localhost:${
-            this._context.ports.server
+          `http://localhost:${this._context.ports.server
           }/scene/${encodeURIComponent(path)}/object/group`,
           { body: JSON.stringify({ elements }), method: "POST" },
         );
@@ -168,10 +163,8 @@ export class TriplexDocument implements vscode.CustomDocument {
   }) {
     return this.undoableAction("Duplicate element", async () => {
       const result = await fetch(
-        `http://localhost:${
-          this._context.ports.server
-        }/scene/${encodeURIComponent(data.path)}/object/${data.line}/${
-          data.column
+        `http://localhost:${this._context.ports.server
+        }/scene/${encodeURIComponent(data.path)}/object/${data.line}/${data.column
         }/duplicate?astPath=${encodeURIComponent(data.astPath)}`,
         { method: "POST" },
       );
@@ -194,10 +187,8 @@ export class TriplexDocument implements vscode.CustomDocument {
   }) {
     return this.undoableAction("Delete element", async () => {
       const result = await fetch(
-        `http://localhost:${
-          this._context.ports.server
-        }/scene/${encodeURIComponent(data.path)}/object/${data.line}/${
-          data.column
+        `http://localhost:${this._context.ports.server
+        }/scene/${encodeURIComponent(data.path)}/object/${data.line}/${data.column
         }/delete?astPath=${encodeURIComponent(data.astPath)}`,
         { method: "POST" },
       );
@@ -237,12 +228,9 @@ export class TriplexDocument implements vscode.CustomDocument {
   }) {
     return this.undoableAction("Move element", async () => {
       const result = await fetch(
-        `http://localhost:${
-          this._context.ports.server
-        }/scene/${encodeURIComponent(data.path)}/object/${data.source.line}/${
-          data.source.column
-        }/move?destLine=${data.destination.line}&destCol=${
-          data.destination.column
+        `http://localhost:${this._context.ports.server
+        }/scene/${encodeURIComponent(data.path)}/object/${data.source.line}/${data.source.column
+        }/move?destLine=${data.destination.line}&destCol=${data.destination.column
         }&action=${data.action}`,
         { method: "POST" },
       );
@@ -256,20 +244,20 @@ export class TriplexDocument implements vscode.CustomDocument {
   async updateCode(
     data:
       | {
-          code: string;
-          fromLineNumber: number;
-          id: string;
-          path: string;
-          toLineNumber: number;
-          type: "replace";
-        }
+        code: string;
+        fromLineNumber: number;
+        id: string;
+        path: string;
+        toLineNumber: number;
+        type: "replace";
+      }
       | {
-          code: string;
-          id: string;
-          lineNumber: number;
-          path: string;
-          type: "add";
-        },
+        code: string;
+        id: string;
+        lineNumber: number;
+        path: string;
+        type: "add";
+      },
   ) {
     if (this._appliedCodeMutations.includes(data.id)) {
       // Skip the code mutation it's already been applied.
@@ -282,19 +270,19 @@ export class TriplexDocument implements vscode.CustomDocument {
       const result =
         data.type === "replace"
           ? await fetch(
-              `http://localhost:${this._context.ports.server}/scene/${encodeURIComponent(data.path)}/${data.fromLineNumber}/${data.toLineNumber}/replace`,
-              {
-                body: JSON.stringify({ code: data.code }),
-                method: "POST",
-              },
-            )
+            `http://localhost:${this._context.ports.server}/scene/${encodeURIComponent(data.path)}/${data.fromLineNumber}/${data.toLineNumber}/replace`,
+            {
+              body: JSON.stringify({ code: data.code }),
+              method: "POST",
+            },
+          )
           : await fetch(
-              `http://localhost:${this._context.ports.server}/scene/${encodeURIComponent(data.path)}/${data.lineNumber}/add`,
-              {
-                body: JSON.stringify({ code: data.code }),
-                method: "POST",
-              },
-            );
+            `http://localhost:${this._context.ports.server}/scene/${encodeURIComponent(data.path)}/${data.lineNumber}/add`,
+            {
+              body: JSON.stringify({ code: data.code }),
+              method: "POST",
+            },
+          );
 
       const response: Mutation = await result.json();
 
@@ -304,8 +292,8 @@ export class TriplexDocument implements vscode.CustomDocument {
 
   async undoableAction<
     TResponse extends
-      | { path: string; redoID: number; status: "modified"; undoID: number }
-      | { path: string; status: "unmodified" },
+    | { path: string; redoID: number; status: "modified"; undoID: number }
+    | { path: string; status: "unmodified" },
   >(
     label: string,
     callback: () => Promise<TResponse> | TResponse,
@@ -334,8 +322,7 @@ export class TriplexDocument implements vscode.CustomDocument {
       label,
       redo: async () => {
         await fetch(
-          `http://localhost:${
-            this._context.ports.server
+          `http://localhost:${this._context.ports.server
           }/scene/${encodeURIComponent(path)}/redo/${redoID}`,
           {
             method: "POST",
@@ -344,8 +331,7 @@ export class TriplexDocument implements vscode.CustomDocument {
       },
       undo: async () => {
         await fetch(
-          `http://localhost:${
-            this._context.ports.server
+          `http://localhost:${this._context.ports.server
           }/scene/${encodeURIComponent(path)}/undo/${undoID}`,
           {
             method: "POST",
