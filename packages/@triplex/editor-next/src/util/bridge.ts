@@ -121,6 +121,7 @@ export interface ToVSCodeEvent extends ClientSendEventData {
   "component-insert": {
     scenePath: string;
     componentPath: string;
+    activeScene: string | undefined;
   };
 }
 

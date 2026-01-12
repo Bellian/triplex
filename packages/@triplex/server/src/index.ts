@@ -354,7 +354,7 @@ export async function createServer({
     const sceneFile = project.getSourceFile(scenePath);
 
     const [ids] = await sceneFile.edit((source) => {
-      addComponentToEnd(source, componentPath);
+      addComponentToEnd(source, body.activeScene, componentPath);
     });
 
     context.response.body = { ...ids, success: true };

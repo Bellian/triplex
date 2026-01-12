@@ -60,6 +60,7 @@ export function AppRoot() {
           sendVSCE("component-insert", {
             componentPath: uri,
             scenePath: context.path,
+            activeScene: context.exportName,
           });
         });
       }

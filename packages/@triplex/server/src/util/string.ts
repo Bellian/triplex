@@ -20,3 +20,8 @@ export function parseJSON(value: string) {
 export function padLines(num: number) {
   return "".padEnd(num, "\n");
 }
+
+export function toPascalCase(str: string) {
+  const pascal = str.replace(/[-_ ]([a-z])/g, (g) => g[1].toUpperCase());
+  return pascal.charAt(0).toUpperCase() + pascal.slice(1);
+}

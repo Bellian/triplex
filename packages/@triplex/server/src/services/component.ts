@@ -634,6 +634,7 @@ export function move(
 /** Adds an existing component to the end of a scene (auto-detects exports) */
 export function addComponentToEnd(
   sceneFile: SourceFile,
+  activeScene: string | undefined,
   componentPath: string,
 ) {
   let componentFile = sceneFile.getProject().getSourceFile(componentPath);
@@ -646,9 +647,12 @@ export function addComponentToEnd(
     throw new Error(`Component file not found: ${componentPath}`);
   }
 
-  const componentExportName = Array.from(
+  const defaultExport = componentFile.getDefaultExportSymbol();
+
+  const exportNames = Array.from(
     componentFile.getExportedDeclarations().keys(),
-  )[0];
+  );
+  const componentExportName = defaultExport ? "__default__" : exportNames[0];
 
   if (!componentExportName) {
     throw new Error(`No exports found in ${componentPath}`);
@@ -656,9 +660,8 @@ export function addComponentToEnd(
 
   ensureImport(sceneFile, componentPath, componentExportName);
 
-  const sceneExportName = Array.from(
-    sceneFile.getExportedDeclarations().keys(),
-  )[0];
+  const components = [...sceneFile.getExportedDeclarations().keys()];
+  const sceneExportName = components.includes(activeScene || "") ? activeScene : components[0];
 
   if (!sceneExportName) {
     throw new Error(`No exports found in scene file`);
@@ -666,7 +669,7 @@ export function addComponentToEnd(
 
   const jsxElement = getExportJsxElement(sceneFile, sceneExportName);
 
-  const newComponentJsx = `<${componentExportName} />`;
+  const newComponentJsx = `<${componentExportName === '__default__' ? toPascalCase(basename(componentPath).replace(extname(componentPath), '')) : componentExportName} />`;
 
   insertAtEnd(sceneFile, jsxElement, newComponentJsx);
 }
@@ -685,16 +688,39 @@ function ensureImport(
   );
 
   if (!existingImport) {
-    sourceFile.addImportDeclaration({
-      moduleSpecifier: relativePath,
-      namedImports: [exportName],
-    });
+    if (exportName === '__default__') {
+      // add import from default
+      log.info('Adding default import for', modulePath);
+      sourceFile.addImportDeclaration({
+        moduleSpecifier: relativePath,
+        defaultImport: toPascalCase(basename(modulePath).replace(extname(modulePath), '')),
+      });
+    } else {
+      // add import named
+      sourceFile.addImportDeclaration({
+        moduleSpecifier: relativePath,
+        namedImports: [exportName],
+      });
+    }
   } else {
-    const namedImports = existingImport.getNamedImports();
-    const hasImport = namedImports.some((ni) => ni.getName() === exportName);
+    if (exportName === '__default__') {
+      // check default import exists and add it
+      const defaultImport = existingImport.getDefaultImport();
+      log.info('Checking default import in', modulePath, '- found:', defaultImport ? 'yes' : 'no');
 
-    if (!hasImport) {
-      existingImport.addNamedImport(exportName);
+      if (!defaultImport) {
+        existingImport.setDefaultImport(toPascalCase(basename(modulePath).replace(extname(modulePath), '')));
+      }
+    } else {
+      // check named import exists and add it
+      const namedImports = existingImport.getNamedImports();
+      const hasImport = namedImports.some((ni) => ni.getName() === exportName);
+
+      log.info('Checking import for', exportName, 'in', modulePath, '- found:', hasImport ? 'yes' : 'no');
+
+      if (!hasImport) {
+        existingImport.addNamedImport(exportName);
+      }
     }
   }
 }
