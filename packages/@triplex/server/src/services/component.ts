@@ -25,6 +25,7 @@ import { getExportNameOrThrow } from "../ast/module";
 import { type ComponentRawType, type ComponentTarget } from "../types";
 import { inferExports } from "../util/module";
 import { padLines, parseJSON } from "../util/string";
+import { omitFileExtension, prefixLocalPath } from "../util/path";
 
 function guessComponentNameFromPath(path: string) {
   const name = basename(path)
@@ -676,13 +677,16 @@ function ensureImport(
   modulePath: string,
   exportName: string,
 ) {
+  const baseFolderPath = dirname(sourceFile.getFilePath());
+  const relativePath = omitFileExtension(prefixLocalPath(relative(baseFolderPath, modulePath)));
+
   const existingImport = sourceFile.getImportDeclaration(
-    (imp) => imp.getModuleSpecifierValue() === modulePath,
+    (imp) => imp.getModuleSpecifierValue() === modulePath || imp.getModuleSpecifierValue() === relativePath,
   );
 
   if (!existingImport) {
     sourceFile.addImportDeclaration({
-      moduleSpecifier: modulePath,
+      moduleSpecifier: relativePath,
       namedImports: [exportName],
     });
   } else {

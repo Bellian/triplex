@@ -39,3 +39,27 @@ export function resolveRemoteURL(path: string) {
   }
   return path;
 }
+
+/**
+ * Ensures that a given path is treated as a local path by adding a './' prefix
+ * if it doesn't already start with './', '../', or '/'.
+ * @param path The file path.
+ * @returns The modified file path with a './' prefix if necessary.
+ */
+export function prefixLocalPath(path: string) {
+  if (!path.startsWith('./') && !path.startsWith('../') && !path.startsWith('/')) {
+    return `./${path}`;
+  }
+  return path;
+}
+
+/**
+ * Removes the file extension from a given path.
+ * @param path The file path.
+ * @returns The file path without its extension.
+ */
+export function omitFileExtension(path: string) {
+  const lastDotIndex = path.lastIndexOf('.');
+  if (lastDotIndex === -1) return path; // No extension found
+  return path.substring(0, lastDotIndex);
+}
