@@ -25,3 +25,17 @@ export function matchFile(file: string, fileGlobs: string[]): boolean {
 
   return false;
 }
+
+/**
+ * Resolves a remote vscode URL to a local file path if it starts with 'vscode-remote://'.
+ * @param path The file path or URL.
+ * @returns The resolved local file path or the original path if not remote.
+ */
+export function resolveRemoteURL(path: string) {
+  if (path.startsWith('vscode-remote://')) {
+    // we hav a remote file drop!
+    path = path.replace(/vscode-remote:\/\/[^/]*/, 'file://');
+    return path;
+  }
+  return path;
+}

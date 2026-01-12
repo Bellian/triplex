@@ -67,6 +67,7 @@ import { checkMissingDependencies } from "./util/deps";
 import { resolveGitRepoVisibility } from "./util/git";
 import { getParam, getParamOptional } from "./util/params";
 import { getThumbnailPath } from "./util/thumbnail";
+import { resolveRemoteURL } from "./util/path";
 
 export * from "./types";
 export { type PropGroupDef } from "./ast/prop-groupings";
@@ -348,13 +349,14 @@ export async function createServer({
 
     const body = await context.request.body().value;
 
-    const componentPath = fileURLToPath(body.componentPath);
+    const componentPath = fileURLToPath(resolveRemoteURL(body.componentPath));
 
     const sceneFile = project.getSourceFile(scenePath);
 
     const [ids] = await sceneFile.edit((source) => {
       addComponentToEnd(source, componentPath);
     });
+
     context.response.body = { ...ids, success: true };
   });
 
