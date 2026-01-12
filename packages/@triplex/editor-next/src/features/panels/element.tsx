@@ -13,6 +13,8 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   ComponentInstanceIcon,
+  Link2Icon,
+  DotIcon
 } from "@radix-ui/react-icons";
 import { compose, on, send } from "@triplex/bridge/host";
 import { cn } from "@triplex/lib";
@@ -83,6 +85,8 @@ export function SceneElement(
   const [isForciblyHovered, setForciblyHovered] = useState(false);
   const isCustomComponent =
     props.type === "custom" && props.exportName && props.path;
+  const isHostComponent =
+    props.type === "host";
   const hasChildren = props.children.length > 0;
   const [isUserExpanded, setExpanded] = useState(
     !isCustomComponent && hasChildren,
@@ -97,13 +101,22 @@ export function SceneElement(
     (fg("selection_ast_path")
       ? selected.astPath === props.astPath && props.parentPath === selected.path
       : "column" in selected &&
-        selected.column === props.column &&
-        selected.line === props.line &&
-        selected.path === props.parentPath);
+      selected.column === props.column &&
+      selected.line === props.line &&
+      selected.path === props.parentPath);
   const filter = useFilter((state) => state.filter);
   const matches = matchesFilter(filter, props);
   const isExpanded = isUserExpanded || !!filter;
   const notifyParentSelected = use(ChildSelectedContext);
+
+  // a component is considered "imported" if it is a custom type but its children do not include the components own AST path OR its path is different from its parent's path
+  const isImportedComponent = props.type === "custom" &&
+    (
+      props.path && props.path !== props.parentPath ||
+      !props.children.some(
+        (child) => child.astPath.includes(props.astPath),
+      )
+    );
 
   interface DragData {
     astPath: string;
@@ -291,7 +304,11 @@ export function SceneElement(
   }, [dropState]);
 
   return (
-    <li className="relative">
+    <li
+      className={`relative`}
+      data-props={JSON.stringify(props)}
+      style={{ backgroundColor: isExpanded && isImportedComponent ? 'rgba(77, 117, 255, 0.1)' : undefined }}
+    >
       {(hasChildren || isCustomComponent) && (
         <div
           className={cn([
@@ -309,13 +326,13 @@ export function SceneElement(
           matches === "child" && "opacity-50",
           "relative flex items-stretch gap-1 py-[1px] pr-4",
           isSelected &&
-            isActive &&
-            "outline-selected outline-offset-inset outline-default bg-active-selected text-active-selected z-10 outline",
+          isActive &&
+          "outline-selected outline-offset-inset outline-default bg-active-selected text-active-selected z-10 outline",
           isSelected && !isActive && "bg-inactive-selected",
           !isSelected && "hover:bg-list-hovered hover:text-list-hovered",
           !isSelected &&
-            isForciblyHovered &&
-            "bg-list-hovered text-list-hovered",
+          isForciblyHovered &&
+          "bg-list-hovered text-list-hovered",
         ])}
         style={{ paddingLeft: props.level * indentation }}
       >
@@ -350,9 +367,20 @@ export function SceneElement(
             )}
           </Pressable>
         )}
-        {!isCustomComponent && !hasChildren && (
-          <div className="-ml-[5px] flex flex-shrink-0 items-center px-0.5 opacity-0">
-            <ComponentInstanceIcon />
+        {
+          isHostComponent && !hasChildren && (
+            <div className="-ml-[5px] flex flex-shrink-0 items-center px-0.5 opacity-100">
+              <DotIcon />
+            </div>
+          ) ||
+          !isCustomComponent && !hasChildren && (
+            <div className="-ml-[5px] flex flex-shrink-0 items-center px-0.5 opacity-0">
+              <ComponentInstanceIcon />
+            </div>)
+        }
+        {isCustomComponent && isImportedComponent && (
+          <div className="-ml-[5px] flex flex-shrink-0 items-center px-0.5 opacity-100">
+            <Link2Icon />
           </div>
         )}
         <Pressable
@@ -386,7 +414,7 @@ export function SceneElement(
           }}
         />
         <span
-          className="w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
+          className={`w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap ${isCustomComponent && isImportedComponent ? 'italic' : ''}`}
           id={id}
         >
           {props.name}
