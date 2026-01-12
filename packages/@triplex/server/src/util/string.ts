@@ -22,6 +22,6 @@ export function padLines(num: number) {
 }
 
 export function toPascalCase(str: string) {
-  const pascal = str.replace(/[-_ ]([a-z])/g, (g) => g[1].toUpperCase());
+  const pascal = str.replaceAll(/[ _-]([a-z])/g, (g) => g[1].toUpperCase());
   return pascal.charAt(0).toUpperCase() + pascal.slice(1);
 }

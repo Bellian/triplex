@@ -24,7 +24,7 @@ import {
 import { getExportNameOrThrow } from "../ast/module";
 import { type ComponentRawType, type ComponentTarget } from "../types";
 import { inferExports } from "../util/module";
-import { padLines, parseJSON } from "../util/string";
+import { padLines, parseJSON, toPascalCase } from "../util/string";
 import { omitFileExtension, prefixLocalPath } from "../util/path";
 
 function guessComponentNameFromPath(path: string) {
@@ -690,10 +690,9 @@ function ensureImport(
   if (!existingImport) {
     if (exportName === '__default__') {
       // add import from default
-      log.info('Adding default import for', modulePath);
       sourceFile.addImportDeclaration({
-        moduleSpecifier: relativePath,
         defaultImport: toPascalCase(basename(modulePath).replace(extname(modulePath), '')),
+        moduleSpecifier: relativePath,
       });
     } else {
       // add import named
@@ -706,7 +705,6 @@ function ensureImport(
     if (exportName === '__default__') {
       // check default import exists and add it
       const defaultImport = existingImport.getDefaultImport();
-      log.info('Checking default import in', modulePath, '- found:', defaultImport ? 'yes' : 'no');
 
       if (!defaultImport) {
         existingImport.setDefaultImport(toPascalCase(basename(modulePath).replace(extname(modulePath), '')));
@@ -715,8 +713,6 @@ function ensureImport(
       // check named import exists and add it
       const namedImports = existingImport.getNamedImports();
       const hasImport = namedImports.some((ni) => ni.getName() === exportName);
-
-      log.info('Checking import for', exportName, 'in', modulePath, '- found:', hasImport ? 'yes' : 'no');
 
       if (!hasImport) {
         existingImport.addNamedImport(exportName);

@@ -6,7 +6,7 @@
  */
 import { fg } from "@triplex/lib/fg";
 import { useScreenView } from "@triplex/ux";
-import { DragEvent, useRef, useState } from "react";
+import { type DragEvent, useRef, useState } from "react";
 import { preloadSubscription } from "../../hooks/ws";
 import { sendVSCE } from "../../util/bridge";
 import { AIChat } from "../ai-chat";
@@ -58,9 +58,9 @@ export function AppRoot() {
         item.getAsString((uri) => {
           fileUris.push(uri);
           sendVSCE("component-insert", {
+            activeScene: context.exportName,
             componentPath: uri,
             scenePath: context.path,
-            activeScene: context.exportName,
           });
         });
       }
@@ -76,39 +76,39 @@ export function AppRoot() {
         <FloatingControls />
         <EmptyState />
         <div
-          ref={dropZoneRef}
-          onDragOver={handleDragOver}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
           onDrop={handleDrop}
+          ref={dropZoneRef}
           style={{
-            position: "relative",
             height: "100%",
-            width: "100%",
             padding: "16px",
+            position: "relative",
+            width: "100%",
           }}
         >
           {isDragging && (
             <div
               style={{
+                alignItems: "center",
+                backgroundColor: "#f5f5f5",
                 border: "2px dashed #ccc",
                 borderRadius: "8px",
-                padding: "40px",
-                textAlign: "center",
-                backgroundColor: "#f5f5f5",
-                transition: "all 0.3s ease",
-                minHeight: "200px",
                 display: "flex",
                 flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
-                position: "absolute",
-                top: "0",
-                left: "0",
-                width: "100%",
                 height: "100%",
-                zIndex: "99",
+                justifyContent: "center",
+                left: "0",
+                minHeight: "200px",
+                padding: "40px",
                 pointerEvents: "all",
+                position: "absolute",
+                textAlign: "center",
+                top: "0",
+                transition: "all 0.3s ease",
+                width: "100%",
+                zIndex: "99",
               }}
             >
               <p>Drop Component here</p>

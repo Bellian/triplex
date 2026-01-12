@@ -70,21 +70,26 @@ export interface FromVSCodeEvent {
 
 export interface ToVSCodeEvent extends ClientSendEventData {
   "code-update":
-    | {
-        code: string;
-        fromLineNumber: number;
-        id: string;
-        path: string;
-        toLineNumber: number;
-        type: "replace";
-      }
-    | {
-        code: string;
-        id: string;
-        lineNumber: number;
-        path: string;
-        type: "add";
-      };
+  | {
+    code: string;
+    fromLineNumber: number;
+    id: string;
+    path: string;
+    toLineNumber: number;
+    type: "replace";
+  }
+  | {
+    code: string;
+    id: string;
+    lineNumber: number;
+    path: string;
+    type: "add";
+  };
+  "component-insert": {
+    activeScene: string | undefined;
+    componentPath: string;
+    scenePath: string;
+  };
   "element-delete": {
     astPath: string;
     column: number;

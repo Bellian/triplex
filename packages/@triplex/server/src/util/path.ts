@@ -60,6 +60,6 @@ export function prefixLocalPath(path: string) {
  */
 export function omitFileExtension(path: string) {
   const lastDotIndex = path.lastIndexOf('.');
-  if (lastDotIndex === -1) return path; // No extension found
-  return path.substring(0, lastDotIndex);
+  if (lastDotIndex === -1) {return path;} // No extension found
+  return path.slice(0, Math.max(0, lastDotIndex));
 }
