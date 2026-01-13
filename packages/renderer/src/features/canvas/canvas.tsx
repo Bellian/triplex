@@ -24,6 +24,7 @@ import { ThreeFiberSelection } from "../selection-three-fiber";
 import { CaptureShaderErrors } from "./capture-shader-errors";
 import { SceneLights } from "./scene-lights";
 import { useCanvasMounted } from "./store";
+import { useMaterialOverride } from "../../stores/use-material-override";
 
 /**
  * **Canvas**
@@ -37,6 +38,7 @@ export function Canvas({ children, ...props }: CanvasProps) {
   const { exportName, path, providerPath, providers, scene } = useLoadedScene();
   const setMounted = useCanvasMounted((state) => state.setMounted);
   const ref = useRef<HTMLCanvasElement>(null);
+  const materialOverride = useMaterialOverride();
 
   useEffect(() => {
     if (playState === "play") {
@@ -62,11 +64,12 @@ export function Canvas({ children, ...props }: CanvasProps) {
           playState === "play"
             ? (props.raycaster?.layers ?? defaultLayer)
             : // This forces the default r3f raycaster to be fired on a different layer (31)
-              // than the default layer (0) that object3d's are set to default.
-              editorLayer,
+            // than the default layer (0) that object3d's are set to default.
+            editorLayer,
       }}
       ref={ref}
     >
+      <color args={[materialOverride === "wireframe" ? "#000000" : "#d9d9d9"]} attach="background" />
       <CaptureShaderErrors />
       <Camera>
         <ErrorBoundaryForScene

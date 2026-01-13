@@ -18,6 +18,8 @@ import {
   SizeIcon,
   SunIcon,
   TransformIcon,
+  MaskOffIcon,
+  MaskOnIcon
 } from "@radix-ui/react-icons";
 import {
   on,
@@ -50,6 +52,8 @@ const icons = {
   ),
   height: HeightIcon,
   local: LocalSpaceIcon,
+  "mask-off": MaskOffIcon,
+  "mask-on": MaskOnIcon,
   moon: MoonIcon,
   move: MoveIcon,
   size: SizeIcon,

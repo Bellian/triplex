@@ -21,6 +21,7 @@ import { ReactDOMSelection } from "../selection-react-dom";
 import { ResetCountContext, SceneContext } from "./context";
 import { type LoadedSceneContext } from "./types";
 import { useSceneLoader } from "./use-scene-loader";
+import { MaterialOverrideComponent } from "../../stores/use-material-override";
 
 export function SceneLoader({
   exportName,
@@ -52,13 +53,13 @@ export function SceneLoader({
     () =>
       scene
         ? {
-            exportName,
-            meta: scene.meta,
-            path,
-            providerPath,
-            providers,
-            scene: scene.component,
-          }
+          exportName,
+          meta: scene.meta,
+          path,
+          providerPath,
+          providers,
+          scene: scene.component,
+        }
         : null,
     [exportName, path, providerPath, providers, scene],
   );
@@ -119,12 +120,14 @@ export function SceneLoader({
             )}
             {scene.meta.root === "react-three-fiber" && (
               <Canvas>
-                <SceneRenderer
-                  component={scene.component}
-                  exportName={exportName}
-                  path={path}
-                  props={sceneProps}
-                />
+                <MaterialOverrideComponent resetCount={resetCount}>
+                  <SceneRenderer
+                    component={scene.component}
+                    exportName={exportName}
+                    path={path}
+                    props={sceneProps}
+                  />
+                </MaterialOverrideComponent>
               </Canvas>
             )}
             <SceneControls />

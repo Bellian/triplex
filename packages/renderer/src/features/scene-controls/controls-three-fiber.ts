@@ -53,6 +53,7 @@ export const controls: Controls = [
   {
     buttons: [
       {
+        accelerator: "P",
         icon: "cursor",
         id: "none",
         label: "Select",
@@ -97,6 +98,25 @@ export const controls: Controls = [
       },
     ],
     groupId: "lights",
+    type: "toggle-button",
+  },
+  {
+    type: "separator",
+  },
+  {
+    buttons: [
+      {
+        icon: "mask-on",
+        id: "material_override_wireframe",
+        label: "Turn On Wireframe Override",
+      },
+      {
+        icon: "mask-off",
+        id: "material_override_none",
+        label: "Turn Off Wireframe Override",
+      },
+    ],
+    groupId: "draw-type",
     type: "toggle-button",
   },
   {
