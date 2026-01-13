@@ -28,6 +28,7 @@ import { SceneLoader } from "../scene-loader";
 import { SwitchToComponentContext } from "./context";
 import { DebugAttributes } from "./debug";
 import { type Component } from "./types";
+import { useDND } from "@triplex/lib";
 
 export function App({
   files,
@@ -43,6 +44,8 @@ export function App({
     path: "",
     props: {},
   });
+
+  const { bindingsDND, isDragging } = useDND(send, component.exportName, component.path);
 
   const switchToComponent = useCallback((component: Component) => {
     startTransition(() => {
@@ -118,26 +121,53 @@ export function App({
           }
           resetKeys={[component]}
         >
-          <Suspense
-            fallback={
-              <LoadingLogo
-                color="rgb(59 130 246)"
-                position="hint"
-                variant="stroke"
-              />
-            }
+          <div
+            {...bindingsDND}
+            style={{ height: '100%', position: 'relative', width: '100%' }}
           >
-            <SceneLoader
-              exportName={component.exportName}
-              modules={files}
-              path={component.path}
-              providerPath={providerPath}
-              providers={providers}
-              sceneProps={component.props}
-            />
-          </Suspense>
-          <Tunnel.Out />
-          <DebugAttributes />
+            {isDragging && (
+              <div
+                style={{
+                  alignItems: "center",
+                  border: "4px dashed #569cd6",
+                  color: "#569cd6",
+                  display: "flex",
+                  flexDirection: "column",
+                  fontFamily: '"Segoe WPC", "Segoe UI", sans-serif',
+                  fontSize: "24px",
+                  fontWeight: "500",
+                  inset: "10px",
+                  justifyContent: "center",
+                  pointerEvents: "none",
+                  position: "absolute",
+                  textAlign: "center",
+                  zIndex: "99",
+                }}
+              >
+
+              </div>
+            )}
+            <Suspense
+              fallback={
+                <LoadingLogo
+                  color="rgb(59 130 246)"
+                  position="hint"
+                  variant="stroke"
+                />
+              }
+            >
+              <SceneLoader
+                exportName={component.exportName}
+                modules={files}
+                path={component.path}
+                providerPath={providerPath}
+                providers={providers}
+                sceneProps={component.props}
+              />
+            </Suspense>
+            <Tunnel.Out />
+            <DebugAttributes />
+          </div>
         </ErrorBoundaryForScene>
       </PlayStateProvider>
     </SwitchToComponentContext.Provider>
