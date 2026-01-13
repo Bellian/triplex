@@ -69,7 +69,7 @@ export function Canvas({ children, ...props }: CanvasProps) {
       }}
       ref={ref}
     >
-      <color args={[materialOverride === "wireframe" ? "#000000" : "#d9d9d9"]} attach="background" />
+      {materialOverride === "wireframe" && <color args={["#000000"]} attach="background" />}
       <CaptureShaderErrors />
       <Camera>
         <ErrorBoundaryForScene

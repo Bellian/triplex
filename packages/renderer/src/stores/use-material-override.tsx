@@ -13,11 +13,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { type Material, type Mesh, MeshBasicMaterial, type Scene } from "three";
+import { type Group, type Material, type Mesh, MeshBasicMaterial, Scene, ShaderMaterial } from "three";
 
 const MaterialOverrideContext = createContext<MaterialOverride>("wireframe");
 
-export function useMaterialOverride() {
+export function useMaterialOverride(): MaterialOverride {
   return useContext(MaterialOverrideContext);
 }
 
@@ -28,12 +28,15 @@ const originalMaterials = new WeakMap<Mesh, Material | Material[]>();
 
 export function MaterialOverrideComponent({ children, resetCount }: { children: ReactNode, resetCount: number }) {
   const materialOverride = useContext(MaterialOverrideContext);
-  const sceneRef = useRef<Scene>(null);
+  const groupRef = useRef<Group>(null);
 
   useEffect(() => {
-    if (!sceneRef.current) { return; }
+    if (!groupRef.current) { return; }
     // set wireframe material on all mesh children
-    const sceneInstance = sceneRef.current;
+    if (!(groupRef.current.parent instanceof Scene)) {
+      return;
+    }
+    const sceneInstance = groupRef.current.parent;
     sceneInstance.getObjectsByProperty("isMesh", true).forEach((object) => {
       const mesh = object as Mesh;
 
@@ -51,16 +54,17 @@ export function MaterialOverrideComponent({ children, resetCount }: { children: 
         originalMaterials.set(mesh, mesh.material);
       }
 
-      if (materialOverride === "wireframe") {
+      if (materialOverride === "wireframe" && !(mesh.material instanceof ShaderMaterial)) {
         // override with wireframe material
         mesh.material = wireframeMaterial;
       }
     });
   }, [resetCount, materialOverride]);
 
-  return <scene ref={sceneRef}>
+  return <>
+    <group ref={groupRef}></group>
     {children}
-  </scene>;
+  </>;
 }
 
 export function MaterialOverrideProvider({ children }: { children: ReactNode }) {
