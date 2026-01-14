@@ -5,36 +5,21 @@
  * see this files license find the nearest LICENSE file up the source tree.
  */
 import { fg } from "@triplex/lib/fg";
-import { useDND } from "@triplex/lib";
 import { useScreenView } from "@triplex/ux";
-import { useEffect } from "react";
 import { preloadSubscription } from "../../hooks/ws";
-import { sendVSCE } from "../../util/bridge";
 import { AIChat } from "../ai-chat";
 import { FloatingControls } from "../floating-controls";
 import { Panels } from "../panels";
-import { useSceneContext } from "./context";
 import { Dialogs } from "./dialogs";
 import { EmptyState } from "./empty-state";
 import { Events } from "./events";
-import { on } from "@triplex/bridge/host";
+import { DNDHelper } from "./dnd-helper";
 
 export function AppRoot() {
   useScreenView("app", "Screen");
 
-  const context = useSceneContext();
-  const { bindingsDND } = useDND(sendVSCE, context.exportName, context.path);
-
-  useEffect(() => {
-    return on("component-insert", (data) => {
-      sendVSCE("component-insert", data);
-    });
-  }, []);
-
   return (
-    <div className="fixed inset-0 flex select-none"
-      {...bindingsDND}
-    >
+    <DNDHelper>
       <Events />
       <Panels />
       <Dialogs />
@@ -50,7 +35,7 @@ export function AppRoot() {
         />
       </div>
       {fg("ai_chat") && <AIChat />}
-    </div>
+    </DNDHelper>
   );
 }
 

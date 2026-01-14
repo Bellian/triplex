@@ -15,7 +15,7 @@ import {
 import { createWSEvents } from "@triplex/websocks-client/events";
 import * as vscode from "vscode";
 import { logger } from "../../util/log/vscode";
-import { on, sendVSCE } from "../util/bridge";
+import { execCallback, on, sendVSCE } from "../util/bridge";
 import { TriplexDocument } from "./document";
 import { initializeWebviewPanel } from "./panel";
 import { type TriplexProjectResolver } from "./project";
@@ -36,8 +36,7 @@ function getFallbackExportName(filepath: string): string {
 }
 
 export class TriplexEditorProvider
-  implements vscode.CustomEditorProvider<TriplexDocument>
-{
+  implements vscode.CustomEditorProvider<TriplexDocument> {
   private static readonly viewType = "triplex.editor";
   private static readonly panelCache = new Map<string, vscode.WebviewPanel>();
   private static readonly projectCache = new Map<
@@ -47,7 +46,7 @@ export class TriplexEditorProvider
   private constructor(
     private readonly _context: vscode.ExtensionContext,
     private readonly _fgEnvironmentOverride: FGEnvironment,
-  ) {}
+  ) { }
 
   backupCustomDocument(
     document: TriplexDocument,
@@ -188,7 +187,14 @@ export class TriplexEditorProvider
           await document.deleteElement(element);
         }),
         on(panel.webview, "component-insert", async (data) => {
-          await document.insertComponent(data);
+          return await document.insertComponent(data);
+        }),
+        on(panel.webview, "send-request", async ({ data, event, id }) => {
+          const results = await execCallback(event, data);
+          sendVSCE(panel.webview, "request-response", {
+            id,
+            result: results.pop(),
+          });
         }),
         on(panel.webview, "notification", async (data) => {
           switch (data.type) {
@@ -265,11 +271,11 @@ export class TriplexEditorProvider
             "vscode:request-delete-element",
             args
               ? {
-                  astPath: args.astPath,
-                  column: args.column,
-                  line: args.line,
-                  path: args.path,
-                }
+                astPath: args.astPath,
+                column: args.column,
+                line: args.line,
+                path: args.path,
+              }
               : undefined,
           );
         });
@@ -294,11 +300,11 @@ export class TriplexEditorProvider
             "vscode:request-duplicate-element",
             args
               ? {
-                  astPath: args.astPath,
-                  column: args.column,
-                  line: args.line,
-                  path: args.path,
-                }
+                astPath: args.astPath,
+                column: args.column,
+                line: args.line,
+                path: args.path,
+              }
               : undefined,
           );
         });
@@ -315,11 +321,11 @@ export class TriplexEditorProvider
             "vscode:request-jump-to-element",
             args
               ? {
-                  astPath: args.astPath,
-                  column: args.column,
-                  line: args.line,
-                  path: args.path,
-                }
+                astPath: args.astPath,
+                column: args.column,
+                line: args.line,
+                path: args.path,
+              }
               : undefined,
           );
         });
@@ -368,8 +374,8 @@ export class TriplexEditorProvider
         }) => {
           const scopedFileName = normalize(
             ctx?.path ||
-              vscode.window.activeTextEditor?.document.fileName ||
-              "",
+            vscode.window.activeTextEditor?.document.fileName ||
+            "",
           );
 
           if (!scopedFileName) {

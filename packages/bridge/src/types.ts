@@ -106,6 +106,7 @@ export interface ClientSendEventData {
   "component-insert": {
     activeScene: string | undefined;
     componentPath: string;
+    exportName?: string;
     scenePath: string;
   };
   "component-opened": {

@@ -353,11 +353,15 @@ export async function createServer({
 
     const sceneFile = project.getSourceFile(scenePath);
 
-    const [ids] = await sceneFile.edit((source) => {
-      addComponentToEnd(source, body.activeScene, componentPath);
-    });
+    try {
+      const [ids] = await sceneFile.edit((source) => {
+        return addComponentToEnd(source, body.activeScene, componentPath, body.exportName);
+      });
+      context.response.body = { ...ids, success: true };
+    } catch (error) {
+      context.response.body = { error, status: "unmodified", success: false };
+    }
 
-    context.response.body = { ...ids, success: true };
   });
 
   router.post("/scene/new", (context) => {

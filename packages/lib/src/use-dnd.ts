@@ -7,6 +7,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { type DragEvent, useRef, useState } from "react";
 
+export type UseDNDReturn = {
+    success: true;
+} | {
+    error: UseDNDReturnError;
+    success: false;
+}
+
+export type UseDNDReturnError = {
+    multipleExports: string[],
+    type: 'multiple-exports'
+}
+
+
 export function useDND(sendCallback: any, activeScene: string, scenePath: string) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = useState(false);

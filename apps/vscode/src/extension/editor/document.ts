@@ -199,7 +199,7 @@ export class TriplexDocument implements vscode.CustomDocument {
     });
   }
 
-  async insertComponent(data: { activeScene: string | undefined, componentPath: string, scenePath: string; }) {
+  async insertComponent(data: { activeScene: string | undefined, componentPath: string, exportName?: string, scenePath: string; }) {
     return this.undoableAction("Insert component", async () => {
       const result = await fetch(
         `http://localhost:${this._context.ports.server
@@ -208,6 +208,7 @@ export class TriplexDocument implements vscode.CustomDocument {
           body: JSON.stringify({
             activeScene: data.activeScene,
             componentPath: data.componentPath,
+            exportName: data.exportName,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -292,8 +293,8 @@ export class TriplexDocument implements vscode.CustomDocument {
 
   async undoableAction<
     TResponse extends
-    | { path: string; redoID: number; status: "modified"; undoID: number }
-    | { path: string; status: "unmodified" },
+    | { path: string; redoID: number; status: "modified"; success?: boolean, undoID: number; }
+    | { path: string; status: "unmodified"; success?: boolean },
   >(
     label: string,
     callback: () => Promise<TResponse> | TResponse,
@@ -310,6 +311,9 @@ export class TriplexDocument implements vscode.CustomDocument {
   ): Promise<Omit<TResponse, "redoID" | "undoID" | "path" | "status">> {
     const result = await callback();
 
+    if (result.success !== undefined && !result.success) {
+      return result;
+    }
     if (result.status === "unmodified") {
       return result;
     }
