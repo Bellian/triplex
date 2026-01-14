@@ -753,6 +753,8 @@ function ensureImport(
 
       if (!defaultImport) {
         existingImport.setDefaultImport(importName);
+      } else {
+        return defaultImport.getText();
       }
     } else {
       // check named import exists and add it
