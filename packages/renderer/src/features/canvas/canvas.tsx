@@ -12,6 +12,7 @@ import { ErrorBoundaryForScene } from "../../components/error-boundary";
 import { ErrorFallback } from "../../components/error-fallback";
 import { TriplexGrid } from "../../components/grid";
 import { Tunnel } from "../../components/tunnel";
+import { useMaterialOverride } from "../../stores/use-material-override";
 import { usePlayState } from "../../stores/use-play-state";
 import { defaultLayer, editorLayer } from "../../util/layers";
 import { CameraAxisHelper } from "../camera-helpers/camera-axis-helper";
@@ -24,7 +25,6 @@ import { ThreeFiberSelection } from "../selection-three-fiber";
 import { CaptureShaderErrors } from "./capture-shader-errors";
 import { SceneLights } from "./scene-lights";
 import { useCanvasMounted } from "./store";
-import { useMaterialOverride } from "../../stores/use-material-override";
 
 /**
  * **Canvas**
@@ -64,12 +64,14 @@ export function Canvas({ children, ...props }: CanvasProps) {
           playState === "play"
             ? (props.raycaster?.layers ?? defaultLayer)
             : // This forces the default r3f raycaster to be fired on a different layer (31)
-            // than the default layer (0) that object3d's are set to default.
-            editorLayer,
+              // than the default layer (0) that object3d's are set to default.
+              editorLayer,
       }}
       ref={ref}
     >
-      {materialOverride === "wireframe" && <color args={["#000000"]} attach="background" />}
+      {materialOverride === "wireframe" && playState !== "play" && (
+        <color args={["#000000"]} attach="background" />
+      )}
       <CaptureShaderErrors />
       <Camera>
         <ErrorBoundaryForScene

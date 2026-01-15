@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from "react";
 import { type Group, type Material, type Mesh, MeshBasicMaterial, Scene, ShaderMaterial } from "three";
+import { usePlayState } from "./use-play-state";
 
 const MaterialOverrideContext = createContext<MaterialOverride>("wireframe");
 
@@ -23,24 +24,38 @@ export function useMaterialOverride(): MaterialOverride {
 
 export type MaterialOverride = "none" | "wireframe";
 
-const wireframeMaterial = new MeshBasicMaterial({ color: 0xff_ff_ff, wireframe: true, wireframeLinewidth: 50 });
+const wireframeMaterial = new MeshBasicMaterial({
+  color: 0xff_ff_ff,
+  wireframe: true,
+  wireframeLinewidth: 50,
+});
 const originalMaterials = new WeakMap<Mesh, Material | Material[]>();
 
-export function MaterialOverrideComponent({ children, resetCount }: { children: ReactNode, resetCount: number }) {
+export function MaterialOverrideComponent({
+  children,
+  resetCount,
+}: {
+  children: ReactNode;
+  resetCount: number;
+}) {
   const materialOverride = useContext(MaterialOverrideContext);
   const groupRef = useRef<Group>(null);
+  const playState = usePlayState();
 
   useEffect(() => {
-    if (!groupRef.current) { return; }
+    if (!groupRef.current) {
+      return;
+    }
     // set wireframe material on all mesh children
     if (!(groupRef.current.parent instanceof Scene)) {
       return;
     }
+    const usedMaterialOverride = playState === "play" ? "none" : materialOverride;
     const sceneInstance = groupRef.current.parent;
     sceneInstance.getObjectsByProperty("isMesh", true).forEach((object) => {
       const mesh = object as Mesh;
 
-      if (materialOverride === "none") {
+      if (usedMaterialOverride === "none") {
         // restore original material
         if (originalMaterials.has(mesh)) {
           mesh.material = originalMaterials.get(mesh)!;
@@ -54,21 +69,31 @@ export function MaterialOverrideComponent({ children, resetCount }: { children: 
         originalMaterials.set(mesh, mesh.material);
       }
 
-      if (materialOverride === "wireframe" && !(mesh.material instanceof ShaderMaterial)) {
+      if (
+        usedMaterialOverride === "wireframe" &&
+        !(mesh.material instanceof ShaderMaterial)
+      ) {
         // override with wireframe material
         mesh.material = wireframeMaterial;
       }
     });
-  }, [resetCount, materialOverride]);
+  }, [resetCount, materialOverride, playState]);
 
-  return <>
-    <group ref={groupRef}></group>
-    {children}
-  </>;
+  return (
+    <>
+      <group ref={groupRef}></group>
+      {children}
+    </>
+  );
 }
 
-export function MaterialOverrideProvider({ children }: { children: ReactNode }) {
-  const [materialOverride, setMaterialOverride] = useState<MaterialOverride>("none");
+export function MaterialOverrideProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [materialOverride, setMaterialOverride] =
+    useState<MaterialOverride>("none");
 
   useEffect(() => {
     return on("extension-point-triggered", (data) => {
