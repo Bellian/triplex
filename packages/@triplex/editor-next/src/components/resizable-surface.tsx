@@ -79,7 +79,7 @@ export function ResizableSurface({
           "--local-resizing-width",
           `${getProposedWidth({ initialWidth, location, splitterPosition })}px`,
         );
-        containerRef.current?.ownerDocument.body.style.setProperty(
+        document.body.style.setProperty(
           "--canvas-pointer-events",
           `none`,
         );
