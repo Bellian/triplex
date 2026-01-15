@@ -414,7 +414,7 @@ export function SceneElement(
           }}
         />
         <span
-          className={`w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap ${isCustomComponent && isImportedComponent ? 'italic' : ''}`}
+          className={`w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap`}
           id={id}
         >
           {props.name}
