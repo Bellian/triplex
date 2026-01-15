@@ -68,6 +68,7 @@ import { resolveGitRepoVisibility } from "./util/git";
 import { getParam, getParamOptional } from "./util/params";
 import { getThumbnailPath } from "./util/thumbnail";
 import { resolveRemoteURL } from "./util/path";
+import { DNDError } from "./util/errors";
 
 export * from "./types";
 export { type PropGroupDef } from "./ast/prop-groupings";
@@ -347,7 +348,16 @@ export async function createServer({
   router.post("/scene/:path/add-component", async (context) => {
     const { path: scenePath } = context.params;
 
-    const body = await context.request.body().value;
+    const body = await context.request.body().value as Record<string, string>;
+
+    if (body.componentPath.endsWith('.ts') === false && body.componentPath.endsWith('.tsx') === false) {
+      context.response.body = {
+        error: new DNDError(`Component path ${body.componentPath} must end with .ts or .tsx`),
+        status: "unmodified",
+        success: false
+      };
+      return;
+    }
 
     const componentPath = fileURLToPath(resolveRemoteURL(body.componentPath));
 

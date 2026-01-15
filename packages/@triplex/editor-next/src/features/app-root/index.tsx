@@ -13,13 +13,13 @@ import { Panels } from "../panels";
 import { Dialogs } from "./dialogs";
 import { EmptyState } from "./empty-state";
 import { Events } from "./events";
-import { DNDHelper } from "./dnd-helper";
+import { FileDNDHelper } from "./dnd-helper";
 
 export function AppRoot() {
   useScreenView("app", "Screen");
 
   return (
-    <DNDHelper>
+    <FileDNDHelper>
       <Events />
       <Panels />
       <Dialogs />
@@ -35,7 +35,7 @@ export function AppRoot() {
         />
       </div>
       {fg("ai_chat") && <AIChat />}
-    </DNDHelper>
+    </FileDNDHelper>
   );
 }
 

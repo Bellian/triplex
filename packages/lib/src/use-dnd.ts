@@ -17,6 +17,9 @@ export type UseDNDReturn = {
 export type UseDNDReturnError = {
     multipleExports: string[],
     type: 'multiple-exports'
+} | {
+    message: string,
+    type: 'unknown'
 }
 
 

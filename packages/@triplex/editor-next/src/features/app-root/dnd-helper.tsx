@@ -9,26 +9,20 @@ import { useEffect, useState } from "react";
 import { preloadSubscription } from "../../hooks/ws";
 import { handleVSCERequestResponse, onVSCE, requestVSCE, type ToVSCodeEvent } from "../../util/bridge";
 import { useSceneContext } from "./context";
-import { type UseDNDReturn } from "../../../../../lib/src/use-dnd";
+import { type UseDNDReturnError, type UseDNDReturn } from "../../../../../lib/src/use-dnd";
 import { Dialog } from "@triplex/ux";
 import { on } from "@triplex/bridge/host";
 
-export function DNDHelper({ children }: { children: React.ReactNode }) {
+export function FileDNDHelper({ children }: { children: React.ReactNode }) {
     const context = useSceneContext();
 
-    const [errorData, setErrorData] = useState<{
-        exportNames: string[];
-        type: 'multiple-exports' | 'unknown';
-    }>();
+    const [errorData, setErrorData] = useState<UseDNDReturnError>();
     const [retryData, setRetryData] = useState<ToVSCodeEvent['component-insert']>();
 
     const handleComponentInsert = async (_: string, data: ToVSCodeEvent['component-insert']) => {
         const result = await requestVSCE<UseDNDReturn, "component-insert">("component-insert", data);
         if (!result.success) {
-            setErrorData({
-                exportNames: result.error.multipleExports,
-                type: result.error.type || 'unknown',
-            });
+            setErrorData(result.error);
             setRetryData(data);
         } else {
             setErrorData(undefined);
@@ -69,14 +63,34 @@ export function DNDHelper({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 flex select-none"
             {...bindingsDND}
         >
-            {errorData && (
+            {errorData && errorData.type === 'unknown' && (
+                <Dialog onDismiss={onDismissError}>
+                    <div className="flex flex-col gap-4 p-4">
+                        <span className="text-heading select-none font-medium">
+                            An error occurred while adding the component.
+                        </span>
+                        <span className="text-sm text-gray-600 break-all">
+                            {errorData.message}
+                        </span>
+                        <div className="flex justify-end">
+                            <button className="bg-blue-600 text-white px-4 py-2 rounded" onClick={onDismissError} type="button">
+                                Dismiss
+                            </button>
+                        </div>
+                    </div>
+                </Dialog>
+            )}
+            {errorData && errorData.type === 'multiple-exports' && (
                 <Dialog onDismiss={onDismissError}>
                     <form className="flex flex-col gap-2.5 p-2.5" onSubmit={onSubmit}>
                         <span className="text-heading select-none font-medium">
                             Which component do you want to add?
                         </span>
                         <select>
-                            {errorData.exportNames.map((name) => (
+                            {errorData.multipleExports.map((name) => (
+                                <option key={name} value={name}>{name}</option>
+                            ))}
+                            {errorData.multipleExports.map((name) => (
                                 <option key={name} value={name}>{name}</option>
                             ))}
                         </select>

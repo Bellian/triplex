@@ -644,7 +644,7 @@ export function addComponentToEnd(
   }
 
   if (!componentFile) {
-    throw new Error(`Component file not found: ${componentPath}`);
+    throw new DNDError(`Component file not found: ${componentPath}`);
   }
 
   // determin the imported export
@@ -655,19 +655,41 @@ export function addComponentToEnd(
 
   // If no export name is provided and there are multiple exports, we need to ask the user to specify one.
   if (!defaultExport && exportNames.length > 1 && !exportName) {
-    const error = new Error(`Multiple exports found in ${componentPath}, please specify an export to use.`) as Error & { multipleExports: string[]; type: string };
+    const error = new DNDError(`Multiple exports found in ${componentPath}, please specify an export to use.`, 'multiple-exports');
     error.multipleExports = exportNames;
-    error.type = 'multiple-exports';
     throw error;
   }
   // If no exports found, throw.
   if (!defaultExport && exportNames.length === 0) {
-    throw new Error(`No exports found in ${componentPath}`);
+    throw new DNDError(`No exports found in ${componentPath}`);
   }
 
   // Determine which export to use
   const componentExportName = defaultExport ? "__default__" : exportName ?? exportNames[0];
 
+  // Determine the import name
+
+  if (!componentExportName) {
+    throw new DNDError(`No exports found in ${componentPath}`);
+  }
+
+  // Ensure the import exists
+  const componentImportName = ensureImport(sceneFile, componentPath, componentExportName);
+
+  const components = [...sceneFile.getExportedDeclarations().keys()];
+  const sceneExportName = components.includes(activeScene || "") ? activeScene : components[0];
+
+  if (!sceneExportName) {
+    throw new DNDError(`No exports found in scene file`);
+  }
+
+  const jsxElement = getExportJsxElement(sceneFile, sceneExportName);
+
+  const newComponentJsx = `<${componentImportName} />`;
+
+  insertAtEnd(sceneFile, jsxElement, newComponentJsx);
+}
+export function getUniqueImportName(componentExportName: string, componentPath: string, sceneFile: SourceFile) {
   // Determine the import name
   let componentImportName = componentExportName === "__default__" ? toPascalCase(basename(componentPath).replace(extname(componentPath), '')) : componentExportName;
   let componentImportNameAddition = 0;
@@ -696,26 +718,7 @@ export function addComponentToEnd(
     componentImportNameAddition++;
   }
   componentImportName = `${componentImportName}${componentImportNameAddition === 0 ? "" : '_' + componentImportNameAddition}`;
-
-  if (!componentExportName) {
-    throw new Error(`No exports found in ${componentPath}`);
-  }
-
-  // Ensure the import exists
-  componentImportName = ensureImport(sceneFile, componentPath, componentExportName, componentImportName);
-
-  const components = [...sceneFile.getExportedDeclarations().keys()];
-  const sceneExportName = components.includes(activeScene || "") ? activeScene : components[0];
-
-  if (!sceneExportName) {
-    throw new Error(`No exports found in scene file`);
-  }
-
-  const jsxElement = getExportJsxElement(sceneFile, sceneExportName);
-
-  const newComponentJsx = `<${componentImportName} />`;
-
-  insertAtEnd(sceneFile, jsxElement, newComponentJsx);
+  return componentImportName;
 }
 
 /** Ensures an import exists for the component */
@@ -723,8 +726,8 @@ function ensureImport(
   sourceFile: SourceFile,
   modulePath: string,
   exportName: string,
-  importName: string,
 ): string {
+  const importName = getUniqueImportName(exportName, modulePath, sourceFile);
   const baseFolderPath = dirname(sourceFile.getFilePath());
   const relativePath = omitFileExtension(prefixLocalPath(relative(baseFolderPath, modulePath)));
 
