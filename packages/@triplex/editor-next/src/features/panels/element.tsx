@@ -101,9 +101,9 @@ export function SceneElement(
     (fg("selection_ast_path")
       ? selected.astPath === props.astPath && props.parentPath === selected.path
       : "column" in selected &&
-      selected.column === props.column &&
-      selected.line === props.line &&
-      selected.path === props.parentPath);
+        selected.column === props.column &&
+        selected.line === props.line &&
+        selected.path === props.parentPath);
   const filter = useFilter((state) => state.filter);
   const matches = matchesFilter(filter, props);
   const isExpanded = isUserExpanded || !!filter;
@@ -326,13 +326,13 @@ export function SceneElement(
           matches === "child" && "opacity-50",
           "relative flex items-stretch gap-1 py-[1px] pr-4",
           isSelected &&
-          isActive &&
-          "outline-selected outline-offset-inset outline-default bg-active-selected text-active-selected z-10 outline",
+            isActive &&
+            "outline-selected outline-offset-inset outline-default bg-active-selected text-active-selected z-10 outline",
           isSelected && !isActive && "bg-inactive-selected",
           !isSelected && "hover:bg-list-hovered hover:text-list-hovered",
           !isSelected &&
-          isForciblyHovered &&
-          "bg-list-hovered text-list-hovered",
+            isForciblyHovered &&
+            "bg-list-hovered text-list-hovered",
         ])}
         style={{ paddingLeft: props.level * indentation }}
       >
