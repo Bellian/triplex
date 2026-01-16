@@ -26,6 +26,7 @@ import { type ComponentRawType, type ComponentTarget } from "../types";
 import { inferExports } from "../util/module";
 import { padLines, parseJSON, toPascalCase } from "../util/string";
 import { omitFileExtension, prefixLocalPath } from "../util/path";
+import { DNDError } from "../util/errors";
 
 function guessComponentNameFromPath(path: string) {
   const name = basename(path)
