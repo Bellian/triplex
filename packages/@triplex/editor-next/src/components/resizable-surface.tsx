@@ -10,7 +10,7 @@ import { disableNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/elem
 import { preventUnhandled } from "@atlaskit/pragmatic-drag-and-drop/prevent-unhandled";
 import { cn } from "@triplex/lib";
 import { useTelemetry, type ActionContext } from "@triplex/ux";
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Surface } from "./surface";
 
 const panelSize = {
@@ -31,6 +31,13 @@ function getProposedWidth({
   const proposedWidth =
     splitterPosition === "start" ? initialWidth - diffX : initialWidth + diffX;
   return Math.min(Math.max(panelSize.min, proposedWidth), panelSize.max);
+}
+
+const ResizableSurfaceHoveredContext = createContext<boolean>(false);
+
+export function useResizableSurfaceHovered(): boolean {
+  const value = useContext(ResizableSurfaceHoveredContext) ?? false;
+  return value;
 }
 
 export function ResizableSurface({
@@ -55,6 +62,7 @@ export function ResizableSurface({
   const containerRef = useRef<HTMLDivElement>(null);
   const [persistedWidth, setPersistedWidth] = useState(initialWidth);
   const [state, setState] = useState<"idle" | "drag">("idle");
+  const [isHovered, setIsHovered] = useState<boolean>(false);
   const telemetry = useTelemetry();
 
   useEffect(() => {
@@ -79,10 +87,7 @@ export function ResizableSurface({
           "--local-resizing-width",
           `${getProposedWidth({ initialWidth, location, splitterPosition })}px`,
         );
-        document.body.style.setProperty(
-          "--canvas-pointer-events",
-          `none`,
-        );
+        document.body.style.setProperty("--canvas-pointer-events", `none`);
       },
       onDragStart() {
         telemetry.event(actionId.resizeStart);
@@ -98,7 +103,9 @@ export function ResizableSurface({
           getProposedWidth({ initialWidth, location, splitterPosition }),
         );
         containerRef.current?.style.removeProperty("--local-resizing-width");
-        containerRef.current?.ownerDocument.body.style.removeProperty("--canvas-pointer-events");
+        containerRef.current?.ownerDocument.body.style.removeProperty(
+          "--canvas-pointer-events",
+        );
       },
       onGenerateDragPreview({ nativeSetDragImage }) {
         disableNativeDragPreview({ nativeSetDragImage });
@@ -114,7 +121,11 @@ export function ResizableSurface({
   ]);
 
   return (
-    <div className="relative flex">
+    <div
+      className="relative flex"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <Surface
         className={cn([
           "flex flex-col",
@@ -130,7 +141,9 @@ export function ResizableSurface({
         }}
         testId="panels"
       >
-        {children}
+        <ResizableSurfaceHoveredContext.Provider value={isHovered}>
+          {children}
+        </ResizableSurfaceHoveredContext.Provider>
       </Surface>
       {!isDisabled && (
         <div
