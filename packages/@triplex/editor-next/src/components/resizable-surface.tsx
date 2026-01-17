@@ -10,7 +10,7 @@ import { disableNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/elem
 import { preventUnhandled } from "@atlaskit/pragmatic-drag-and-drop/prevent-unhandled";
 import { cn } from "@triplex/lib";
 import { useTelemetry, type ActionContext } from "@triplex/ux";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Surface } from "./surface";
 
 const panelSize = {
@@ -31,13 +31,6 @@ function getProposedWidth({
   const proposedWidth =
     splitterPosition === "start" ? initialWidth - diffX : initialWidth + diffX;
   return Math.min(Math.max(panelSize.min, proposedWidth), panelSize.max);
-}
-
-const ResizableSurfaceHoveredContext = createContext<boolean>(false);
-
-export function useResizableSurfaceHovered(): boolean {
-  const value = useContext(ResizableSurfaceHoveredContext) ?? false;
-  return value;
 }
 
 export function ResizableSurface({
@@ -62,7 +55,6 @@ export function ResizableSurface({
   const containerRef = useRef<HTMLDivElement>(null);
   const [persistedWidth, setPersistedWidth] = useState(initialWidth);
   const [state, setState] = useState<"idle" | "drag">("idle");
-  const [isHovered, setIsHovered] = useState<boolean>(false);
   const telemetry = useTelemetry();
 
   useEffect(() => {
@@ -121,11 +113,7 @@ export function ResizableSurface({
   ]);
 
   return (
-    <div
-      className="relative flex"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="relative flex">
       <Surface
         className={cn([
           "flex flex-col",
@@ -141,9 +129,7 @@ export function ResizableSurface({
         }}
         testId="panels"
       >
-        <ResizableSurfaceHoveredContext.Provider value={isHovered}>
-          {children}
-        </ResizableSurfaceHoveredContext.Provider>
+        {children}
       </Surface>
       {!isDisabled && (
         <div
@@ -151,7 +137,7 @@ export function ResizableSurface({
             state === "drag" && "opacity-100",
             splitterPosition === "end" && "-right-1.5 border-l-4",
             splitterPosition === "start" && "-left-1.5 border-r-4",
-            "absolute bottom-0 top-0 z-10 w-2 cursor-col-resize border-[var(--vscode-sash-hoverBorder)] opacity-0 delay-0 duration-100 hover:opacity-100 hover:transition-opacity hover:delay-200 hover:duration-150",
+            "group absolute bottom-0 top-0 z-10 w-2 cursor-col-resize border-[var(--vscode-sash-hoverBorder)] opacity-0 delay-0 duration-100 hover:opacity-100 hover:transition-opacity hover:delay-200 hover:duration-150",
           ])}
           data-testid="panel-drag-handle"
           ref={ref}

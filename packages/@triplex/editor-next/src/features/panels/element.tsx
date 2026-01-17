@@ -38,7 +38,7 @@ import {
 } from "../../util/dnd";
 import { useSceneEvents, useSceneSelected } from "../app-root/context";
 import { ChildSelectedContext } from "./context";
-import { ElementIcon } from "./element-icon";
+import { ShowElementChildrenButton } from "./element-children-button";
 
 const blockAll: InstructionType[] = [
   "make-child",
@@ -344,7 +344,7 @@ export function SceneElement(
             ])}
           />
         )}
-        <ElementIcon
+        <ShowElementChildrenButton
           hasChildren={hasChildren}
           id={id}
           isCustomComponent={isCustomComponent}
