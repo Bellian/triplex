@@ -95,9 +95,7 @@ export function ResizableSurface({
           getProposedWidth({ initialWidth, location, splitterPosition }),
         );
         containerRef.current?.style.removeProperty("--local-resizing-width");
-        containerRef.current?.ownerDocument.body.style.removeProperty(
-          "--canvas-pointer-events",
-        );
+        document.body.style.removeProperty("--canvas-pointer-events");
       },
       onGenerateDragPreview({ nativeSetDragImage }) {
         disableNativeDragPreview({ nativeSetDragImage });

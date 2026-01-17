@@ -298,7 +298,6 @@ export function SceneElement(
         "relative",
         isExpanded && isImportedComponent && "bg-overlay",
       ])}
-      data-props={JSON.stringify(props)}
     >
       {(hasChildren || isCustomComponent) && (
         <div
@@ -379,7 +378,7 @@ export function SceneElement(
           }}
         />
         <span
-          className={`w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap`}
+          className="w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
           id={id}
         >
           {props.name}
