@@ -79,7 +79,6 @@ export function SceneElement(
   const [isForciblyHovered, setForciblyHovered] = useState(false);
   const isCustomComponent =
     props.type === "custom" && !!props.exportName && !!props.path;
-  const isHostComponent = props.type === "host";
   const hasChildren = props.children.length > 0;
   const [isUserExpanded, setExpanded] = useState(
     !isCustomComponent && hasChildren,
@@ -295,14 +294,11 @@ export function SceneElement(
 
   return (
     <li
-      className={`relative`}
+      className={cn([
+        "relative",
+        isExpanded && isImportedComponent && "bg-overlay",
+      ])}
       data-props={JSON.stringify(props)}
-      style={{
-        backgroundColor:
-          isExpanded && isImportedComponent
-            ? "rgba(77, 117, 255, 0.1)"
-            : undefined,
-      }}
     >
       {(hasChildren || isCustomComponent) && (
         <div
@@ -349,7 +345,6 @@ export function SceneElement(
           id={id}
           isCustomComponent={isCustomComponent}
           isExpanded={isExpanded}
-          isHostComponent={isHostComponent}
           isImportedComponent={isImportedComponent}
           setExpanded={setExpanded}
         />

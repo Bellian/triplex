@@ -17,7 +17,6 @@ export function ShowElementChildrenButton({
   id,
   isCustomComponent,
   isExpanded,
-  isHostComponent: _isHostComponent,
   isImportedComponent,
   setExpanded,
 }: {
@@ -25,7 +24,6 @@ export function ShowElementChildrenButton({
   id: string;
   isCustomComponent: boolean;
   isExpanded: boolean;
-  isHostComponent: boolean;
   isImportedComponent: boolean;
   setExpanded: (value: (prev: boolean) => boolean) => void;
 }) {
@@ -34,7 +32,7 @@ export function ShowElementChildrenButton({
     isCustomComponent && isImportedComponent;
 
   if (!shouldShow) {
-    return null;
+    return <div className="w-[0.5px]" />;
   }
 
   return (
